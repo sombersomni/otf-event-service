@@ -1,13 +1,13 @@
 import aiohttp
-from flask import Flask, jsonify, request
-import redis
-from datetime import datetime
+import os
 import pytz
+import redis
+from flask import Flask, jsonify, request
+from datetime import datetime
 
+# contants
 app = Flask(__name__)
 r = redis.Redis(host='localhost', port=6379)
-
-api_url = "https://api.sportradar.com/nba/simulation/v7/en/games/a2a43125-5538-43f7-84a9-e8e02a8a772f/pbp.json?api_key=zr4agcnkmbx9evcvt49xxat9"
 
 @app.route('/publish', methods=['POST'])
 def publish():
@@ -20,6 +20,10 @@ def publish():
 
 @app.route('/', methods=['GET'])
 async def index():
+    api_url = (
+        "https://api.sportradar.com/nba/simulation/v7/en/games/a2a43125-5538-43f7-84a9-e8e02a8a772f/pbp.json"
+        + f"?api_key={os.environ.get('SPORTS_RADAR_API_KEY')}"
+    )
     async with aiohttp.ClientSession() as session:
         async with session.get(api_url) as response:
             # Get the response from the 
@@ -30,7 +34,7 @@ async def index():
 # Set the time-to-live for the game score hash to one day (in seconds)
 HASH_TTL = 86400
 # Set the input date time string and the target timezone
-game_scheduled_time_str = '2023-02-9T00:00:00+00:00'
+game_scheduled_time_str = '2023-03-08T00:00:00+00:00'
 target_tz = 'US/Eastern'
 status = "open"
 
@@ -48,7 +52,7 @@ def update_game_score():
 
     # Get the current datetime in the target timezone
     current_date_time_est = datetime.now(target_tz_obj)
-
+    print(current_date_time_est, game_scheduled_time)
     # Compare the two datetimes
     if status == 'closed':
         print('stop polling for this game id')
@@ -56,13 +60,12 @@ def update_game_score():
     if current_date_time_est < game_scheduled_time_est:
         print('set the polling time out based on the difference in time')
         diff_time = current_date_time_est - game_scheduled_time_est
-        return jsonify({ "cronjob_time": diff_time})
+        return jsonify({ "cronjob_time": abs(diff_time.total_seconds()) / 60 / 60 })
 
     print('game is likely running')
 
     # Retrieve the current game score and request count from Redis
     game_data = r.hgetall('game_score')
-    print(game_data)
     current_score = int(game_data.get(b'score', b'0'))
     request_count = int(game_data.get(b'count', b'0'))
 
@@ -83,4 +86,4 @@ def update_game_score():
     return jsonify({'score': updated_score, 'count': updated_count})
 
 if __name__ == '__main__':
-    app.run()
+    app.run(load_dotenv=True)
