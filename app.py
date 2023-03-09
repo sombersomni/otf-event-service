@@ -62,28 +62,28 @@ def update_game_score():
         diff_time = current_date_time_est - game_scheduled_time_est
         return jsonify({ "cronjob_time": abs(diff_time.total_seconds()) / 60 / 60 })
 
-    print('game is likely running')
-
     # Retrieve the current game score and request count from Redis
     game_data = r.hgetall('game_score')
-    current_score = int(game_data.get(b'score', b'0'))
-    request_count = int(game_data.get(b'count', b'0'))
+    prev_score = int(game_data.get(b'score', b'0'))
+    prev_period = int(game_data.get(b'period', b'0'))
 
+    new_period = request.json.get('period')
+    if prev_period == new_period:
+        print("wait for game period to change")
+        return jsonify({ 'skip': True })
     # Get the new score from the request data
     new_score = request.json.get('score')
-    print(current_score, new_score)
     # Add the new score to the current score and increment the request count
-    updated_score = current_score + new_score
-    updated_count = request_count + 1
+    updated_score = prev_score + new_score
 
     # Save the updated score and count back to Redis
-    r.hmset('game_score', {'score': updated_score, 'count': updated_count})
+    r.hmset('game_score', {'score': updated_score, 'period': new_period})
 
     # Set the time-to-live for the game score hash
     r.expire('game_score', HASH_TTL)
 
     # Return the updated score and count to the user
-    return jsonify({'score': updated_score, 'count': updated_count})
+    return jsonify({'score': updated_score, 'period': new_period})
 
 if __name__ == '__main__':
     app.run(load_dotenv=True)
