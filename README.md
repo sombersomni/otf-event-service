@@ -21,11 +21,11 @@ enter the task as **Started** in the database.
 The TaskRunner will then poll for the game information every 10 minutes until the game is over.
 
 ## TaskRunners
-These micro tasks are ran when the Task Manager finds a task in the database that is ready to run.
+These TaskRunners are ran when the Task Manager finds a task in the database that is ready to run.
 You can think of these as workers.
 Once this process starts, the database adds a new row to make it known that the task has started.
 This change in state allows the Task Manager to know not to try to run it again.
-Each TaskRunner is a cron job and is timed to run periodically. This frees the Task Manger up for
+Each TaskRunner creates a cron job and they are timed to run periodically. This frees the Task Manager up for
 scheduling purposes.
 
 As each TaskRunner polls for information, it will create its own events. These events are what are sent out to
