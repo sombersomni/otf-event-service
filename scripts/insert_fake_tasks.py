@@ -37,7 +37,7 @@ for _ in range(3):
     status = fake.random_element(["Pending", "In Progress", "Completed"])
 
     # SQL statement to insert a task
-    insert_query = "INSERT INTO Task (name, type, created_by, created_at, status) VALUES (%s, %s, %s, %s, %s)"
+    insert_query = "INSERT INTO task (name, type, created_by, created_at, status) VALUES (%s, %s, %s, %s, %s)"
 
     # Execute the SQL statement
     cursor.execute(insert_query, (name, task_type, created_by, created_at, status))
