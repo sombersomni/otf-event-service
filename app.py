@@ -4,10 +4,22 @@ import pytz
 import redis
 from flask import Flask, jsonify, request
 from datetime import datetime
+from init_app import app, db, r, manager
+from src.models.task import Task
 
-# contants
-app = Flask(__name__)
-r = redis.Redis(host='localhost', port=6379)
+@app.route('/tasks', methods=['POST'])
+def create_task():
+    name = request.json['name']
+    type = request.json['type']
+    created_at = request.json['created_at']
+    status = request.json['status']
+
+    new_task = Task(name=name, type=type, created_at=created_at, status=status)
+
+    db.session.add(new_task)
+    db.session.commit()
+
+    return jsonify({'message': 'Task created successfully.'})
 
 @app.route('/publish', methods=['POST'])
 def publish():
@@ -86,4 +98,5 @@ def update_game_score():
     return jsonify({'score': updated_score, 'period': new_period})
 
 if __name__ == '__main__':
+    manager.run()
     app.run(load_dotenv=True)
