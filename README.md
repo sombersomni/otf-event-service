@@ -58,8 +58,7 @@ will rarely change unless the polling needs to be increased or decreased. This T
 This allows us to slowly structure how a task is made and processed.
 
 ### TIMESCALEDB
-[TimescaleDB](https://docs.timescale.com/api/latest/)
-The TimescaleDB table Task is only for tracking the state of tasks. A task is a time series that can move to multiple states as it travels through all the
+The [TimescaleDB](https://docs.timescale.com/api/latest/) table Task is only for tracking the state of tasks. A task is a time series that can move to multiple states as it travels through all the
 backend services. It could be in a **SCHEDULED** state when we schedule for it. It could be in a **IN_PROGRESS** state as multiple
 services work on the task. It could also either be in a **COMPLETED** or **FAILED** state depending on the circumstances of
 the processing. The Photo Service could fail, but the Caption service might succeed in creating a caption. All these states
