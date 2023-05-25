@@ -1,20 +1,27 @@
 import aiohttp
 import os
 import pytz
-import redis
-from flask import Flask, jsonify, request
+from flask import jsonify, request
 from datetime import datetime
-from init_app import app, db, r, manager
 from src.models.task import Task
+from init_app import app, db, r
+
 
 @app.route('/tasks', methods=['POST'])
 def create_task():
     name = request.json['name']
-    type = request.json['type']
+    task_type = request.json['type']
     created_at = request.json['created_at']
+    created_by = request.json['created_by']
     status = request.json['status']
 
-    new_task = Task(name=name, type=type, created_at=created_at, status=status)
+    new_task = Task(
+        name=name,
+        type=task_type,
+        created_at=created_at,
+        created_by=created_by,
+        status=status
+    )
 
     db.session.add(new_task)
     db.session.commit()
@@ -98,5 +105,4 @@ def update_game_score():
     return jsonify({'score': updated_score, 'period': new_period})
 
 if __name__ == '__main__':
-    manager.run()
     app.run(load_dotenv=True)
