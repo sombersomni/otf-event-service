@@ -45,11 +45,8 @@ queue and wait patiently for a message to come in from the Task Manager. When a 
 it will create a coroutine for it and run it periodically. The TaskRunner will then end itself once
 it has completed its mission.
 
-The two services share the same databases. There are only two databases. One is for all task related
-events that have occurred in the system. The other is for information related to how a task is structured.
-Why two databases?
 
-## POSTGRESQL database and Timestreams
+## POSTGRESQL database and Time Series Task
 ### POSTGRESQL
 We use a single postgresql database in conjunction with TimescaleDB. Most information other than the single Task table rarely change, and is
 directly related to the structure of a task. Let us consider that for every task there will potentially be a task type
@@ -62,9 +59,9 @@ This allows us to slowly structure how a task is made and processed.
 
 ### TIMESCALEDB
 [TimescaleDB](https://docs.timescale.com/api/latest/)
-The TimescaleDB table Task is only for tracking the state of tasks. A task can be in multiple states as it travels through all the
-backend services. It could be in a **SCHEDULED** state when we schedule for it. It could be in a **STARTED** state as multiple
-services work on the task. It could also either be in a **FINISHED** or **FAILED** state depending on the circumstances of
+The TimescaleDB table Task is only for tracking the state of tasks. A task is a time series that can move to multiple states as it travels through all the
+backend services. It could be in a **SCHEDULED** state when we schedule for it. It could be in a **IN_PROGRESS** state as multiple
+services work on the task. It could also either be in a **COMPLETED** or **FAILED** state depending on the circumstances of
 the processing. The Photo Service could fail, but the Caption service might succeed in creating a caption. All these states
 must be considered as a task is worked on. If an outside service needs to update the state of a task, it will always go through
 the Task Manager. TaskRunners only worry about making tasks. The Task Manager will track if a task is successful based on
