@@ -49,20 +49,21 @@ The two services share the same databases. There are only two databases. One is 
 events that have occurred in the system. The other is for information related to how a task is structured.
 Why two databases?
 
-## NO SQL database and Timestreams
-### NO SQL
-The two databases are used to help separate concerns. The NO SQL database is for information that will rarely change, and is
+## POSTGRESQL database and Timestreams
+### POSTGRESQL
+We use a single postgresql database in conjunction with TimescaleDB. Most information other than the single Task table rarely change, and is
 directly related to the structure of a task. Let us consider that for every task there will potentially be a task type
-that is either defined by us or the user.
+that is either defined by us, an event agent or the user.
 For exmaple, if we want to keep track of period scores for a game, that will be its own task type. We can call it
 'GAME_PERIOD_SCORE_TASK'. This task needs to be associated with the http url to poll and the number of seconds wed want
 to poll this. Since this would be considered mutable, it doesn't fit the use case of a time stream. However, this data
 will rarely change unless the polling needs to be increased or decreased. This Task can also be soft deleted.
 This allows us to slowly structure how a task is made and processed.
 
-### Timestream
-The timestream database is only for tracking the state of tasks. A task can be in multiple states as it travels through all the
-backend services. It could be in a **READY** state when we schedule for it. It could be in a **STARTED** state as multiple
+### TIMESCALEDB
+[TimescaleDB](https://docs.timescale.com/api/latest/)
+The TimescaleDB table Task is only for tracking the state of tasks. A task can be in multiple states as it travels through all the
+backend services. It could be in a **SCHEDULED** state when we schedule for it. It could be in a **STARTED** state as multiple
 services work on the task. It could also either be in a **FINISHED** or **FAILED** state depending on the circumstances of
 the processing. The Photo Service could fail, but the Caption service might succeed in creating a caption. All these states
 must be considered as a task is worked on. If an outside service needs to update the state of a task, it will always go through
