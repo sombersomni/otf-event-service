@@ -17,7 +17,7 @@ def create_task():
 
     new_task = Task(
         name=name,
-        type=task_type,
+        task_type=task_type,
         created_at=created_at,
         created_by=created_by,
         status=status
