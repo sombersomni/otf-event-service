@@ -1,8 +1,9 @@
 from init_app import db
-from sqlalchemy import Column, Index, Integer, Text, TIMESTAMP
+from sqlalchemy import Column, Index, Integer, ForeignKey, Text, TIMESTAMP, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.schema import PrimaryKeyConstraint
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 import uuid
 
 class TaskType(db.Model):
@@ -16,12 +17,31 @@ class TaskType(db.Model):
         self.name = name
         self.created_by = created_by
 
+class UserTaskAssociation(db.Model):
+    id = Column(Integer, primary_key=True)
+    opaque_id = Column(UUID(as_uuid=True), default=uuid.uuid4, index=True, nullable=False)
+    task_type_id = Column(Integer, ForeignKey('task_types.id'))
+    task_type = relationship(TaskType)
+    retired_at = Column(TIMESTAMP(timezone=True), index=True, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), index=True, server_default=func.now(), nullable=False)
+    created_by = Column(Text, index=True, nullable=False)
+
+    # Define the composite unique index
+    __table_args__ = (
+        UniqueConstraint('user_id', 'task_type_id', name='_user_task_uc'),
+    )
+
+    def __init__(self, type, created_by):
+        self.type = type
+        self.created_by = created_by
+
 class Task(db.Model):
     id = Column(Integer, autoincrement=True)
     opaque_id = Column(UUID(as_uuid=True), default=uuid.uuid4, index=True, nullable=False)
     type = Column(Text, index=True, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     created_by = Column(Text, index=True, nullable=False)
+    user_id = Column(UUID(as_uuid=True), index=True, nullable=False)
     status = Column(Text, default='scheduled', index=True, nullable=False)
 
     # Define the composite unique index

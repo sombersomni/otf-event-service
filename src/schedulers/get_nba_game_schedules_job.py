@@ -18,6 +18,8 @@ API_KEY = os.environ.get('SPORTS_RADAR_API_KEY')
 VERSION = os.environ.get('SPORTS_RADAR_API_VERSION', 'v8')
 ENV = os.environ.get('SPORTS_RADAR_API_ENV', 'trial')
 
+headers = {'Content-Type': 'application/json'}
+
 async def get_schedules():
   # Get Schedules for all games per day
   utc_timezone = timezone('UTC')
@@ -29,10 +31,11 @@ async def get_schedules():
     f"https://api.sportradar.com/nba/{ENV}/{VERSION}/en/games/{year}/{month}/{day}/schedule.json"
     f"?api_key={API_KEY}"
   )
-
+  print(api_url)
   async with aiohttp.ClientSession() as session:
-      async with session.get(api_url) as response:
+      async with session.get(api_url, headers=headers) as response:
           # Get the response from the
+          print(response)
           schedule = await response.json()
 
           if schedule is None:
@@ -45,7 +48,7 @@ async def get_schedules():
             now = datetime.now().astimezone(utc_timezone)
             game_date = parse(game['scheduled']).astimezone(utc_timezone)
             time_difference_seconds = floor((game_date - now).total_seconds())
-            time_difference_seconds
+            print(time_difference_seconds)
             game_feed.apply_async((game['id'],), countdown=2)
 
 

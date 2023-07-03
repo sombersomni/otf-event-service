@@ -9,6 +9,7 @@ async def create_task():
         "type": fake.word(),
         "created_at": fake.iso8601(),
         "created_by": fake.word(),
+        "user_id": fake.word(),
         "status": fake.word()
     }
     print(task_data)
