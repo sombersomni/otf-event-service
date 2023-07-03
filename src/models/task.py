@@ -20,11 +20,11 @@ class TaskType(db.Model):
 class UserTaskAssociation(db.Model):
     id = Column(Integer, primary_key=True)
     opaque_id = Column(UUID(as_uuid=True), default=uuid.uuid4, index=True, nullable=False)
+    user_id = Column(UUID(as_uuid=True), index=True, nullable=False)
     task_type_id = Column(Integer, ForeignKey('task_types.id'))
     task_type = relationship(TaskType)
     retired_at = Column(TIMESTAMP(timezone=True), index=True, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), index=True, server_default=func.now(), nullable=False)
-    created_by = Column(Text, index=True, nullable=False)
 
     # Define the composite unique index
     __table_args__ = (
