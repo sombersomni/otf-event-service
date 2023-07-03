@@ -3,10 +3,12 @@
 # Task Manager
 ## Overview
 
-The __Task Manager__ effectively polls for scheduled tasks to be handled. Every task is scheduled by a
-separate entity. It reads a timestream of scheduled tasks and when the datetime for a tasks has passed
-and is in the ready state, the manager will start micro tasks. These __TaskRunners__ are essentially short lived
-cron jobs (coroutines) that run every so often.
+The __Task Manager__ effectively polls an api to determine if a job should run. For example, using the sports api, we
+can find when a game will start. If the game is starting in an hour that day, we set a cron job to schedule it to run
+at that time. Once the game starts, we continuously poll the api to check for the points or whatever stats we need.
+If nothing is found, we end the job and create a new job 10 seconds later. This flow happens throughout the entire game until
+the game is over. During the game, we use the event database to make sure we aren't creating multiple events of the same
+type and repeating processes. 
 
 ## Example
 Say for example we want to keep track of the box score for a basketball game.
