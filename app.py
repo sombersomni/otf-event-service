@@ -1,10 +1,19 @@
 import aiohttp
 import os
 from flask import jsonify, request
-from src.models.task import Task
+from src.models.task import Task, TaskType, OwnerTaskAssociation
 from init_app import app, db
 
-
+def get_owner_ids(task_type_name):
+    try:
+        owner_ids = db.session.query(OwnerTaskAssociation.owner_id).join(TaskType).filter(TaskType.name == task_type_name).all()
+        if owner_ids is None:
+            return []
+        return (owner_id for owner_id in owner_ids)
+    except Exception as e:
+        print(e)
+        return []
+        
 @app.route('/tasks', methods=['POST'])
 def create_task():
     name = request.json['name']
@@ -35,8 +44,8 @@ def publish():
     r.xadd(event_name, {'message': message})
     return jsonify({'success': True})
 
-@app.route('/', methods=['GET'])
-async def index():
+@app.route('/nba', methods=['GET'])
+async def nba():
     api_url = (
         "https://api.sportradar.com/nba/simulation/v7/en/games/a2a43125-5538-43f7-84a9-e8e02a8a772f/pbp.json"
         + f"?api_key={os.environ.get('SPORTS_RADAR_API_KEY')}"
@@ -48,6 +57,10 @@ async def index():
             data = await response.json()
             return jsonify(data)
 
+@app.route('/', methods=['GET'])
+def index():
+    owner_ids = get_owner_ids('game-feed')
+    return jsonify(list(owner_ids))
 # # Set the time-to-live for the game score hash to one day (in seconds)
 # HASH_TTL = 86400
 # # Set the input date time string and the target timezone

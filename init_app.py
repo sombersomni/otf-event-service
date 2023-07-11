@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import redis
 from dotenv import load_dotenv
 import os
 from flask_migrate import Migrate
