@@ -8,7 +8,7 @@ from dateutil.parser import parse
 from math import floor
 from pytz import timezone
 
-from src.tasks.game_feed import game_feed
+# from src.tasks.game_feed import game_feed
 
 # Load environment variables
 load_dotenv()
@@ -31,11 +31,12 @@ async def get_schedules():
     f"https://api.sportradar.com/nba/{ENV}/{VERSION}/en/games/{year}/{month}/{day}/schedule.json"
     f"?api_key={API_KEY}"
   )
-  print(api_url)
   async with aiohttp.ClientSession() as session:
       async with session.get(api_url, headers=headers) as response:
-          # Get the response from the
-          print(response)
+          # Get the response from the)
+          if response.status >= 400:
+             print('Server error found. Check Sports Radar api!')
+             return
           schedule = await response.json()
 
           if schedule is None:
@@ -49,7 +50,7 @@ async def get_schedules():
             game_date = parse(game['scheduled']).astimezone(utc_timezone)
             time_difference_seconds = floor((game_date - now).total_seconds())
             print(time_difference_seconds)
-            game_feed.apply_async((game['id'],), countdown=2)
+            # game_feed.apply_async((game['id'],), countdown=2)
 
 
 async def job():
