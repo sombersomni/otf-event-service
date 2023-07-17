@@ -1,6 +1,9 @@
 import aiohttp
 import os
+from faker import Faker
 from flask import jsonify, request
+from uuid import uuid4
+
 from src.models.task import Task, TaskType, OwnerTaskAssociation
 from init_app import app, db
 
@@ -16,16 +19,16 @@ def get_owner_ids(task_type_name):
         
 @app.route('/tasks', methods=['POST'])
 def create_task():
-    name = request.json['name']
-    task_type = request.json['type']
-    created_at = request.json['created_at']
-    created_by = request.json['created_by']
-    status = request.json['status']
+    data = request.get_json()
+    fake = Faker()
+    name = data.get('name', fake.word)
+    task_type = data.get('type', fake.word)
+    created_by = data.get('created_by', uuid4())
+    status = data.get('status', fake.word())
 
     new_task = Task(
         name=name,
-        task_type=task_type,
-        created_at=created_at,
+        type=task_type,
         created_by=created_by,
         status=status
     )
@@ -34,6 +37,19 @@ def create_task():
     db.session.commit()
 
     return jsonify({'message': 'Task created successfully.'})
+
+@app.route('/owner-task-associations', methods=['POST'])
+def create_owner_task():
+    data = request.get_json()
+    owner_id = data.get('owner_id', uuid4())
+    task_type_id = data.get('task_type_id', 1)
+    created_by = data.get('created_by', uuid4())
+
+    owner_task_association = OwnerTaskAssociation(owner_id, task_type_id, created_by)
+    db.session.add(owner_task_association)
+    db.session.commit()
+
+    return jsonify({'message': 'Owner Task Association created successfully'}), 201
 
 @app.route('/publish', methods=['POST'])
 def publish():
