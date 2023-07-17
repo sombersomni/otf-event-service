@@ -4,19 +4,26 @@ from faker import Faker
 from flask import jsonify, request
 from uuid import uuid4
 
-from src.models.task import Task, TaskType, OwnerTaskAssociation
+from src.models.task import Task, OwnerTaskAssociation
 from init_app import app, db
 
 def get_owner_ids(task_type_name):
-    try:
-        owner_ids = db.session.query(OwnerTaskAssociation.owner_id).join(TaskType).filter(TaskType.name == task_type_name).all()
-        if owner_ids is None:
-            return []
-        return (owner_id for owner_id in owner_ids)
-    except Exception as e:
-        print(e)
-        return []
+    if not task_type_name:
+        return None, {'message': 'type_name parameter is required', 'status': 400}
+
+    associations = OwnerTaskAssociation.query.filter_by(task_type=task_type_name).all()
+
+    if not associations:
+        return None, {'message': 'No OwnerTaskAssociations found for the given type_name', 'status': 404}
+
+    return [association.owner_id for association in associations], None
         
+@app.route('/task-types', methods=['GET'])
+def create_task_types():
+    fake = Faker()
+    return jsonify({'data': [fake.word() for _ in range(10)]})
+
+
 @app.route('/tasks', methods=['POST'])
 def create_task():
     data = request.get_json()
@@ -39,17 +46,19 @@ def create_task():
     return jsonify({'message': 'Task created successfully.'})
 
 @app.route('/owner-task-associations', methods=['POST'])
-def create_owner_task():
+def create_owner_task_association():
     data = request.get_json()
+    fake = Faker()
     owner_id = data.get('owner_id', uuid4())
-    task_type_id = data.get('task_type_id', 1)
+    task_type = data.get('task_type', fake.word())
     created_by = data.get('created_by', uuid4())
 
-    owner_task_association = OwnerTaskAssociation(owner_id, task_type_id, created_by)
+    owner_task_association = OwnerTaskAssociation(task_type, owner_id, created_by)
     db.session.add(owner_task_association)
     db.session.commit()
 
-    return jsonify({'message': 'Owner Task Association created successfully'}), 201
+    return jsonify({
+        'message': 'Owner Task Association created successfully'})
 
 @app.route('/publish', methods=['POST'])
 def publish():
@@ -75,8 +84,11 @@ async def nba():
 
 @app.route('/', methods=['GET'])
 def index():
-    owner_ids = get_owner_ids('game-feed')
-    return jsonify(list(owner_ids))
+    task_type_name = request.args.get('task_type', 'game-feed')
+    result, err = get_owner_ids(task_type_name)
+    if err is not None:
+        return jsonify(err, err.get('status', 400))
+    return jsonify({'owner_ids': result}), 200
 # # Set the time-to-live for the game score hash to one day (in seconds)
 # HASH_TTL = 86400
 # # Set the input date time string and the target timezone
