@@ -4,20 +4,11 @@ from faker import Faker
 from flask import jsonify, request
 from uuid import uuid4
 
-from src.models.task import Task, OwnerTaskAssociation
+from src.tasks.models import Task, OwnerTaskAssociation
+from src.tasks.queries import get_owner_ids
 from init_app import app, db
 
-def get_owner_ids(task_type_name):
-    if not task_type_name:
-        return None, {'message': 'type_name parameter is required', 'status': 400}
 
-    associations = OwnerTaskAssociation.query.filter_by(task_type=task_type_name).all()
-
-    if not associations:
-        return None, {'message': 'No OwnerTaskAssociations found for the given type_name', 'status': 404}
-
-    return [association.owner_id for association in associations], None
-        
 @app.route('/task-types', methods=['GET'])
 def create_task_types():
     fake = Faker()
@@ -57,8 +48,7 @@ def create_owner_task_association():
     db.session.add(owner_task_association)
     db.session.commit()
 
-    return jsonify({
-        'message': 'Owner Task Association created successfully'})
+    return jsonify({'message': 'Owner Task Association created successfully'})
 
 @app.route('/publish', methods=['POST'])
 def publish():
@@ -89,6 +79,7 @@ def index():
     if err is not None:
         return jsonify(err, err.get('status', 400))
     return jsonify({'owner_ids': result}), 200
+
 # # Set the time-to-live for the game score hash to one day (in seconds)
 # HASH_TTL = 86400
 # # Set the input date time string and the target timezone

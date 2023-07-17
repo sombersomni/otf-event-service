@@ -9,7 +9,7 @@ from math import floor
 from pytz import timezone
 
 from init_app import db
-from src.models.task import OwnerTaskAssociation, TaskType
+from src.tasks.models import OwnerTaskAssociation, TaskType
 
 # from src.tasks.game_feed import game_feed
 
