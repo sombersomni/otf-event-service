@@ -72,12 +72,8 @@ def get_owner_ids():
     return jsonify({'owner_ids': result}), 200
 
 @app.route('/', methods=['GET'])
-def get_owner_ids():
-    task_type_name = request.args.get('task_type', 'game-feed')
-    result, err = get_owner_ids(task_type_name)
-    if err is not None:
-        return jsonify(err, err.get('status', 400))
-    return jsonify({'owner_ids': result}), 200
+def index():
+    return jsonify({',essage': 'We are live!'}), 200
 
 # @app.route('/publish', methods=['POST'])
 # def publish():
