@@ -34,7 +34,7 @@ def create_task():
     db.session.add(new_task)
     db.session.commit()
 
-    return jsonify({'message': 'Task created successfully.'})
+    return jsonify({'message': 'Task created successfully.'}), 200
 
 @app.route('/owner-task-associations', methods=['POST'])
 def create_owner_task_association():
@@ -48,16 +48,7 @@ def create_owner_task_association():
     db.session.add(owner_task_association)
     db.session.commit()
 
-    return jsonify({'message': 'Owner Task Association created successfully'})
-
-@app.route('/publish', methods=['POST'])
-def publish():
-    data = request.get_json()
-    event_name = data['event_name']
-    message = data['message']
-    print(event_name, message)
-    r.xadd(event_name, {'message': message})
-    return jsonify({'success': True})
+    return jsonify({'message': 'Owner Task Association created successfully'}), 200
 
 @app.route('/nba', methods=['GET'])
 async def nba():
@@ -72,13 +63,30 @@ async def nba():
             data = await response.json()
             return jsonify(data)
 
+@app.route('/owners', methods=['GET'])
+def get_owner_ids():
+    task_type_name = request.args.get('task_type', 'game-feed')
+    result, err = get_owner_ids(task_type_name)
+    if err is not None:
+        return jsonify(err), err.get('status', 400)
+    return jsonify({'owner_ids': result}), 200
+
 @app.route('/', methods=['GET'])
-def index():
+def get_owner_ids():
     task_type_name = request.args.get('task_type', 'game-feed')
     result, err = get_owner_ids(task_type_name)
     if err is not None:
         return jsonify(err, err.get('status', 400))
     return jsonify({'owner_ids': result}), 200
+
+# @app.route('/publish', methods=['POST'])
+# def publish():
+#     data = request.get_json()
+#     event_name = data['event_name']
+#     message = data['message']
+#     print(event_name, message)
+#     r.xadd(event_name, {'message': message})
+#     return jsonify({'success': True})
 
 # # Set the time-to-live for the game score hash to one day (in seconds)
 # HASH_TTL = 86400

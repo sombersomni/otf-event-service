@@ -5,13 +5,28 @@ services:
   db:
     image: postgres
     restart: always
-    ports:
-      - 5432:5432
     environment:
-      POSTGRES_PASSWORD: example
+      POSTGRES_PASSWORD: devpass
+    networks:
+      - dbnet
 
   adminer:
     image: adminer
     restart: always
     ports:
       - 8080:8080
+
+  app:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      ports:
+        - 5000:5000
+      depends_on:
+        - db
+      networks:
+        - dbnet
+
+networks:
+  dbnet:
+    driver: bridge
